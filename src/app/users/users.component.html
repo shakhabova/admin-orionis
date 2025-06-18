@@ -1,0 +1,119 @@
+<div class="header">
+  <div class="h3-heading">Users</div>
+
+  <div class="header-actions"></div>
+</div>
+
+<div class="filters-wrapper u-mar-bottom-24">
+  <button
+    tuiButton
+    appearance="secondary-grayscale"
+    type="button"
+    size="m"
+    (click)="openFilters()"
+    [class.active]="hasFilters()"
+  >
+    <tui-icon icon="@tui.filter"></tui-icon>
+  </button>
+</div>
+
+@if (users().length) {
+  <table tuiTable [columns]="columns">
+    <thead>
+      <tr tuiThGroup>
+        <th tuiTh>ID</th>
+        <th tuiTh>Customer ID</th>
+        <th tuiTh>Full name</th>
+        <th tuiTh>Contact</th>
+        <th tuiTh>Address</th>
+        <th tuiTh style="width: 205px">Status</th>
+        <th tuiTh>Created at/<br />Updated at</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody tuiTbody [data]="pagedUsers()">
+      @for (user of pagedUsers(); track user.id) {
+        <tr tuiTr>
+          <td *tuiCell="'id'" tuiTd>
+            <span class="text-m w600">{{ user.id }}</span>
+          </td>
+
+          <td *tuiCell="'customerId'" tuiTd>
+            <span class="text-m w600">{{ user.customerId }}</span>
+          </td>
+
+          <td *tuiCell="'fullName'" tuiTd>
+            <span class="text-m w600"
+              >{{ user.firstName }}&nbsp;{{ user.lastName }}</span
+            >
+          </td>
+
+          <td *tuiCell="'contact'" tuiTd>
+            <div class="text-m w600">{{ user.phoneNumber }}</div>
+            <div class="text-m w600">{{ user.email }}</div>
+          </td>
+
+          <td *tuiCell="'address'" tuiTd>
+            <span class="text-m w600">{{ user.address }}</span>
+          </td>
+
+          <td *tuiCell="'status'" tuiTd class="text-m w600">
+            <app-user-status-chip [status]="user.status" />
+          </td>
+
+          <td *tuiCell="'createdUpdatedAt'" tuiTd>
+            <div class="text-m w600">
+              {{ user.createdAt | date: "dd.MM.yyyy" }}
+            </div>
+            <div class="user-time text-m w600">
+              {{ user.updatedAt | date: "dd.MM.yyyy" }}
+            </div>
+          </td>
+
+          <td *tuiCell="'actions'" tuiTd>
+            <app-user-actions
+              [user]="user"
+              (updated)="onUserUpdate()"
+            ></app-user-actions>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p-paginator
+    class="paginator"
+    [totalRecords]="totalElements()"
+    [rows]="pageSize"
+    (onPageChange)="onPageChange($event)"
+    [showFirstLastIcon]="false"
+    [showPageLinks]="true"
+  >
+    <ng-template #previouspagelinkicon>
+      <span class="paginator-button">
+        <tui-icon icon="@tui.chevron-left"></tui-icon>
+        Back
+      </span>
+    </ng-template>
+
+    <ng-template #nextpagelinkicon>
+      <span class="paginator-button">
+        Next
+        <tui-icon icon="@tui.chevron-right"></tui-icon>
+      </span>
+    </ng-template>
+  </p-paginator>
+}
+@if (isLoading()) {
+  <app-loader></app-loader>
+}
+
+@if (displayEmpty()) {
+  <!-- TODO fix text -->
+  <app-empty-display text="No users found."></app-empty-display>
+}
+
+@if (displayError()) {
+  <!-- TODO fix text -->
+  <app-error-display text="Something went wrong while trying to load users." />
+}
