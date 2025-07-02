@@ -19,7 +19,7 @@ import {
   AuthenticateResponse,
   LoginApiService,
 } from 'login/services/login-api.service';
-import { MfaApiService } from 'login/services/mfa-api.service';
+import { MfaApiService, SubmitResetMfaDto } from 'login/services/mfa-api.service';
 
 export interface MfaOtpModalData {
   email: string;
@@ -87,7 +87,7 @@ export class MfaOtpCodeComponent {
     const getRequest = (otp: string) =>
       this.mfaService.submitResetMfa({ email: this.email, otp });
 
-    const otpDialog = this.tuiDialogs.open<string>(
+    const otpDialog = this.tuiDialogs.open<SubmitResetMfaDto>(
       new PolymorpheusComponent(EmailOtpCodeComponent, this.injector),
       {
         data: {
@@ -105,7 +105,7 @@ export class MfaOtpCodeComponent {
       }
 
       this.router.navigateByUrl('/login/mfa-connect', {
-        state: { mfaQR: result },
+        state: { mfaQR: result.qr },
       });
     });
   }
