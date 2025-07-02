@@ -11,7 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { MfaApiService } from 'login/services/mfa-api.service';
+import { MfaApiService, SubmitResetMfaDto } from 'login/services/mfa-api.service';
 import { EmailOtpCodeComponent } from 'login/ui/email-otp-code/email-otp-code.component';
 import { finalize } from 'rxjs';
 import { DialogService } from 'shared/dialog.service';
@@ -43,36 +43,30 @@ export class AskForMfaComponent implements OnInit {
   }
 
   enable() {
-    const qr = this.mfaQR();
-    if (qr) {
-      this.goToMfaConnect(qr);
-      return;
-    }
-
-    this.loading.set(true);
-    const email = this.email();
-    if (email) {
-      this.mfaApiService
-        .resetMfa(email)
-        .pipe(
-          takeUntilDestroyed(this.destroyRef),
-          finalize(() => this.loading.set(false)),
-        )
-        .subscribe({
-          next: () => {
-            this.showOTPModal();
-          },
-          error: (err) => {
-            this.dialogService
-              .showInfo({
-                type: 'warning',
-                title: 'Error',
-                text: 'An unexpected error has appeared. Please try again later.',
-              })
-              .subscribe();
-          },
-        });
-    }
+		this.loading.set(true);
+		const email = this.email();
+		if (email) {
+			this.mfaApiService
+				.resetMfa(email)
+				.pipe(
+					takeUntilDestroyed(this.destroyRef),
+					finalize(() => this.loading.set(false)),
+				)
+				.subscribe({
+					next: () => {
+						this.showOTPModal();
+					},
+					error: (err) => {
+						this.dialogService
+							.showInfo({
+								type: 'warning',
+								title: 'Error',
+								text: 'An unexpected error has appeared. Please try again later.',
+							})
+							.subscribe();
+					},
+				});
+		}
   }
 
   private showOTPModal(): void {
@@ -84,7 +78,7 @@ export class AskForMfaComponent implements OnInit {
     const getRequest = (otp: string) =>
       this.mfaApiService.submitResetMfa({ email, otp });
 
-    const otpDialog = this.tuiDialogs.open<string>(
+    const otpDialog = this.tuiDialogs.open<SubmitResetMfaDto>(
       new PolymorpheusComponent(EmailOtpCodeComponent, this.injector),
       {
         data: {
@@ -105,7 +99,7 @@ export class AskForMfaComponent implements OnInit {
     });
   }
 
-  private goToMfaConnect(mfaQR: string) {
-    this.router.navigateByUrl('/login/mfa-connect', { state: { mfaQR } });
-  }
+	private goToMfaConnect(result: SubmitResetMfaDto) {
+		this.router.navigateByUrl('/auth/mfa-connect', { state: { mfaQR: result.qr, secret: result.secret } });
+	}
 }
